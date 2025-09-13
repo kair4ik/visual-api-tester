@@ -1,0 +1,139 @@
+/* Global Styles for Visual API Flow */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Rete.js Node Styles */
+.rete {
+  height: 100%;
+  width: 100%;
+  background: #1a1a1a;
+  position: relative;
+}
+
+.rete .connection {
+  stroke: #4a90e2;
+  stroke-width: 2px;
+  fill: none;
+  pointer-events: none;
+}
+
+.rete .connection.selected {
+  stroke: #f39c12;
+  stroke-width: 3px;
+}
+
+/* Nodes are now rendered as Bootstrap cards */
+
+.rete .node .input,
+.rete .node .output {
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+}
+
+.rete .node .input-title,
+.rete .node .output-title {
+  font-size: 12px;
+  color: #b0b0b0;
+  margin: 0 8px;
+}
+
+.rete .socket {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #404040;
+  background: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rete .socket:hover {
+  background: #4a90e2;
+  border-color: #4a90e2;
+}
+
+.rete .socket.input {
+  margin-right: 8px;
+}
+
+.rete .socket.output {
+  margin-left: 8px;
+}
+
+/* Node Styles - Now using Bootstrap Cards */
+.node-container {
+  position: absolute;
+  cursor: default; /* Обычный курсор на ноде */
+}
+
+.node-container:hover {
+  /* Hover effect removed to prevent unwanted movement */
+}
+
+.node-container.dragging {
+  z-index: 1000;
+}
+
+.node-container.dragging .card-header {
+  cursor: grabbing !important; /* Курсор захвата при перетаскивании */
+}
+
+/* Custom status indicators */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.status-success {
+  background: #198754;
+}
+
+.status-error {
+  background: #dc3545;
+}
+
+.status-pending {
+  background: #ffc107;
+  animation: pulse 1.5s infinite;
+}
+
+/* Custom nav tabs for smaller size */
+.nav-tabs-sm .nav-link {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Postman-style method colors */
+.method-get { color: #198754 !important; }
+.method-post { color: #fd7e14 !important; }
+.method-put { color: #0dcaf0 !important; }
+.method-delete { color: #dc3545 !important; }
+.method-patch { color: #6f42c1 !important; }
+
+/* Using Bootstrap 5 form controls and buttons */
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
