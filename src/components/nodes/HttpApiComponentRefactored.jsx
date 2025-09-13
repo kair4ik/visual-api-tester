@@ -38,7 +38,15 @@ const HttpApiComponentRefactored = ({
     return <div className={statusClass}></div>
   }
 
-  // Validation indicator removed - not used in current implementation
+  const getValidationIndicator = () => {
+    if (state.isValid === true) {
+      return <div className="status-indicator status-success"></div>
+    }
+    if (state.isValid === false) {
+      return <div className="status-indicator status-error"></div>
+    }
+    return <div className="status-indicator"></div>
+  }
 
 
   // Header management
@@ -73,7 +81,21 @@ const HttpApiComponentRefactored = ({
     actions.updateOutputSocket(index, field, value)
   }
 
-  // Validation handlers removed - not used in current implementation
+  // Validation form handlers
+  const handleExtractPathChange = (e) => {
+    e.stopPropagation()
+    actions.setField('extractPath', e.target.value)
+  }
+
+  const handleExpectedStatusChange = (e) => {
+    e.stopPropagation()
+    actions.setField('expectedStatus', parseInt(e.target.value) || 200)
+  }
+
+  const handleValidationChange = (e) => {
+    e.stopPropagation()
+    actions.setField('validation', e.target.value)
+  }
 
   // Tab content renderers
   const renderHeadersTab = () => (
@@ -141,7 +163,75 @@ const HttpApiComponentRefactored = ({
     </div>
   )
 
-  // Validation tab removed - not used in current implementation
+  const renderValidationTab = () => (
+    <div className="tab-pane fade show active h-100">
+      <div className="mb-3">
+        <label className="form-label fw-bold">Extract Path</label>
+        <div className="input-group input-group-sm">
+          <span className="input-group-text">
+            <i className="bi bi-arrow-down-circle"></i>
+          </span>
+          <input
+            className="form-control"
+            type="text"
+            placeholder="e.g., data.users[0].name"
+            value={state.extractPath}
+            onChange={handleExtractPathChange}
+          />
+        </div>
+      </div>
+
+      <div className="row g-2 mb-3">
+        <div className="col-6">
+          <label className="form-label fw-bold">Expected Status</label>
+          <input
+            className="form-control form-control-sm"
+            type="number"
+            placeholder="200"
+            value={state.expectedStatus}
+            onChange={handleExpectedStatusChange}
+          />
+        </div>
+        <div className="col-6">
+          <label className="form-label fw-bold">Validation</label>
+          <input
+            className="form-control form-control-sm"
+            type="text"
+            placeholder="data.length > 0"
+            value={state.validation}
+            onChange={handleValidationChange}
+          />
+        </div>
+      </div>
+
+      {state.isValid !== undefined && (
+        <div className="mt-3">
+          <div className={`alert ${state.isValid ? 'alert-success' : 'alert-danger'} alert-sm py-2`} style={{ fontSize: '11px' }}>
+            <i className={`bi ${state.isValid ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>
+            <strong>Validation {state.isValid ? 'Passed' : 'Failed'}</strong>
+            {!state.isValid && (
+              <div className="mt-1">Check your expected status code and validation expression.</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+  const renderOutputsTab = () => {
+    const availableFields = state.response ? getAvailableFields(state.response) : []
+    
+    return (
+      <div className="tab-pane fade show active h-100 d-flex flex-column">
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <small className="text-muted fw-bold">
+            <i className="bi bi-arrow-right-circle"></i> Custom Output Sockets
+          </small>
+          <button 
+            className="btn btn-outline-success btn-sm"
+            onClick={handleAddOutputSocket}
+            disabled={!state.response}
+          >
             <i className="bi bi-plus-circle"></i> Add Output
           </button>
         </div>
@@ -381,6 +471,7 @@ const HttpApiComponentRefactored = ({
           onMouseDown={onHeaderMouseDown}
         >
           {getStatusIndicator()}
+          {getValidationIndicator()}
           <i className="bi bi-api me-2"></i>
           <strong>HTTP API</strong>
           <small className="ms-auto opacity-75">
@@ -425,6 +516,17 @@ const HttpApiComponentRefactored = ({
             </li>
             <li className="nav-item">
               <button 
+                className={`nav-link ${state.activeTab === TABS.VALIDATION ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  actions.setField('activeTab', TABS.VALIDATION)
+                }}
+              >
+                <i className="bi bi-shield-check"></i> Validation
+              </button>
+            </li>
+            <li className="nav-item">
+              <button 
                 className={`nav-link ${state.activeTab === TABS.OUTPUTS ? 'active' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation()
@@ -459,6 +561,8 @@ const HttpApiComponentRefactored = ({
             )}
             
             {state.activeTab === TABS.HEADERS && renderHeadersTab()}
+            
+            {state.activeTab === TABS.VALIDATION && renderValidationTab()}
 
             {state.activeTab === TABS.OUTPUTS && renderOutputsTab()}
             
