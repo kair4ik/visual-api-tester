@@ -40,7 +40,7 @@ const NodeEditor = () => {
       position: { x: 50, y: 200 },
       data: {
         method: 'GET',
-        url: 'https://httpbin.org/uuid',
+        url: '/api/uuid',
         headers: JSON.stringify([]),
         body: '',
         status: 'idle',

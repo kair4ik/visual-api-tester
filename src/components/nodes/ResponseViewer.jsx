@@ -29,13 +29,6 @@ const ResponseViewer = ({ state, className = '' }) => {
             </small>
           </div>
           
-          {/* Validation Status */}
-          {isValid !== undefined && (
-            <span className={`badge ${isValid ? 'bg-success' : 'bg-danger'}`}>
-              <i className={`bi ${isValid ? 'bi-check-circle' : 'bi-x-circle'}`}></i>
-              {isValid ? 'Valid' : 'Invalid'}
-            </span>
-          )}
         </div>
         
         {/* Response Data Preview */}
