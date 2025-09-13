@@ -1,158 +1,146 @@
 # Visual API Flow
 
-Node-based visual API testing tool combining the power of Postman, the flexibility of Figma, and the visual workflow of Rete.js.
+Визуальный инструмент для тестирования API на основе узлов, объединяющий мощь Postman, гибкость Figma и визуальный рабочий процесс Rete.js.
 
-## 🚀 Features
+## 🚀 Возможности
 
-- **Node-based Visual Interface**: Drag and drop API requests and responses like in Blender or Unreal Engine
-- **HTTP Request Nodes**: Configure GET, POST, PUT, DELETE, PATCH requests with full control
-- **Response Handler Nodes**: Extract data, validate responses, and chain requests
-- **Real-time Execution**: Execute flows and see results in real-time
-- **Visual Feedback**: Status indicators, error highlighting, and response preview
-- **Chain Requests**: Connect API calls to create complex testing workflows
+- **Визуальный интерфейс на основе узлов**: Перетаскивайте API-запросы и ответы как в Blender или Unreal Engine
+- **Узлы HTTP-запросов**: Настраивайте GET, POST, PUT, DELETE, PATCH запросы с полным контролем
+- **Узлы обработки ответов**: Извлекайте данные, валидируйте ответы и создавайте цепочки запросов
+- **Выполнение в реальном времени**: Запускайте потоки и смотрите результаты в реальном времени
+- **Визуальная обратная связь**: Индикаторы состояния, подсветка ошибок и предпросмотр ответов
+- **Цепочки запросов**: Соединяйте API-вызовы для создания сложных тестовых сценариев
 
-## 🛠 Tech Stack
+## 🛠 Технологический стек
 
 - **Frontend**: React + Vite
-- **Node Editor**: Rete.js v2
-- **HTTP Client**: Axios
-- **Styling**: CSS + Styled Components
+- **Редактор узлов**: Кастомная реализация
+- **HTTP клиент**: Встроенный fetch API
+- **Стили**: CSS + Bootstrap
 
-## 📦 Installation
+## 📦 Установка
 
 ```bash
-# Navigate to project directory
+# Перейдите в директорию проекта
 cd visual-api-flow
 
-# Install dependencies (already done)
+# Установите зависимости
 npm install
 
-# Start development server
+# Запустите сервер разработки
 npm run dev
 ```
 
-## 🎮 Usage
+## 🎮 Использование
 
-### Basic Workflow
+### Основной рабочий процесс
 
-1. **Add HTTP Request Node**: Click the "+ HTTP Request" button
-   - Configure method (GET, POST, PUT, DELETE, PATCH)
-   - Set URL endpoint
-   - Add headers (JSON format)
-   - Add request body (for POST/PUT/PATCH)
+1. **Добавьте HTTP узел**: Нажмите кнопку "+ Add HTTP Node"
+   - Выберите метод (GET, POST, PUT, DELETE, PATCH)
+   - Укажите URL эндпоинта
+   - Добавьте заголовки (во вкладке Headers)
+   - Добавьте тело запроса (для POST/PUT/PATCH)
 
-2. **Add Response Handler Node**: Click the "+ Response Handler" button
-   - Set extraction path (e.g., `data.users[0].name`)
-   - Configure expected status code
-   - Add custom validation (JavaScript expression)
+2. **Настройте параметры**: Перейдите во вкладку "Params"
+   - Добавьте входные параметры для получения данных из других узлов
 
-3. **Connect Nodes**: Drag from output socket to input socket
-   - Connect HTTP Request "Response" to Response Handler "Response"
+3. **Настройте выходы**: Перейдите во вкладку "Outputs"
+   - Укажите, какие данные из ответа передать дальше
 
-4. **Execute Flow**: Click "▶ Execute Flow" to run all connected nodes
+4. **Соедините узлы**: Перетащите от синего выходного сокета к зелёному входному
 
-### Example Flow
+5. **Запустите поток**: Нажмите "▶ Execute Flow" для запуска всей цепочки
+
+### Пример потока
 
 ```
-[HTTP Request] → [Response Handler] → [Another HTTP Request]
-     ↓                  ↓                      ↓
-  GET /users      Extract user.id         POST /users/123/posts
+[Получить UUID] → [Отправить данные] → [Получить информацию]
+      ↓                    ↓                      ↓
+  GET /uuid          POST /anything         GET /headers
+                     (с UUID)               (с trace ID)
 ```
 
-### Node Types
+### Типы узлов
 
-#### HTTP Request Node
-- **Inputs**: Trigger, URL, Method, Headers, Body
-- **Outputs**: Response
-- **Features**: 
-  - Visual status indicators (idle, loading, success, error)
-  - Response preview
-  - Full HTTP method support
-  - Custom headers and body
+#### HTTP API узел
+- **Входы**: Параметры для подстановки в URL/тело
+- **Выходы**: Данные из ответа
+- **Функции**: 
+  - Визуальные индикаторы состояния (idle, loading, success, error)
+  - Предпросмотр ответа
+  - Поддержка всех HTTP методов
+  - Пользовательские заголовки и тело запроса
+  - Автопереключение на вкладку Response при выполнении
 
-#### Response Handler Node
-- **Inputs**: Response
-- **Outputs**: Extracted Data, Is Valid, Status Code, Headers
-- **Features**:
-  - JSONPath-like data extraction
-  - Status code validation
-  - Custom JavaScript validation expressions
-  - Visual validation indicators
+## 🎯 Сценарии использования
 
-## 🎯 Use Cases
+- **Тестирование API**: Создавайте сложные тестовые сценарии с зависимыми запросами
+- **Тестирование потоков данных**: Извлекайте данные из одного API и передавайте в другой
+- **Интеграционное тестирование**: Тестируйте полные API-потоки от начала до конца
+- **Валидация данных**: Проверяйте ответы API с помощью пользовательских правил
 
-- **API Testing Workflows**: Create complex test scenarios with dependent requests
-- **Data Pipeline Testing**: Extract data from one API and pass to another
-- **Integration Testing**: Test entire API flows end-to-end
-- **Performance Testing**: Chain multiple requests and measure response times
-- **Data Validation**: Validate API responses with custom rules
+## 🚧 Разработка
 
-## 🚧 Development
-
-### Project Structure
+### Структура проекта
 
 ```
 visual-api-flow/
 ├── src/
-│   ├── components/          # React components
-│   │   ├── nodes/          # Node-specific components
-│   │   ├── NodeEditor.jsx  # Main editor component
-│   │   ├── Toolbar.jsx     # Top toolbar
-│   │   └── StatusBar.jsx   # Bottom status bar
-│   ├── nodes/              # Node definitions
-│   │   ├── HttpRequestNode.js
-│   │   └── ResponseHandlerNode.js
-│   ├── styles/             # CSS styles
-│   │   └── globals.css
-│   ├── App.jsx             # Main app component
-│   └── main.jsx            # Entry point
+│   ├── components/          # React компоненты
+│   │   ├── nodes/          # Компоненты узлов
+│   │   └── NodeEditor.jsx  # Основной компонент редактора
+│   ├── hooks/              # Пользовательские хуки
+│   ├── utils/              # Утилиты и константы
+│   ├── styles/             # CSS стили
+│   ├── App.jsx             # Основной компонент приложения
+│   └── main.jsx            # Точка входа
 ├── package.json
 ├── vite.config.js
 └── README.md
 ```
 
-### Building
+### Сборка
 
 ```bash
-# Build for production
+# Сборка для продакшна
 npm run build
 
-# Preview production build
+# Предпросмотр продакшн сборки
 npm run preview
 ```
 
-## 🔮 Future Features
+## 🔮 Будущие функции
 
-- **More Node Types**:
-  - Data Transform Node (map, filter, transform data)
-  - Assertion Node (advanced testing assertions)
-  - Loop Node (iterate over arrays)
-  - Delay Node (add timing to flows)
-  - Environment Variable Node (manage test environments)
+- **Новые типы узлов**:
+  - Узел трансформации данных (map, filter, transform)
+  - Узел утверждений (расширенные тестовые утверждения)
+  - Узел цикла (итерация по массивам)
+  - Узел задержки (добавление тайминга в потоки)
+  - Узел переменных среды (управление тестовыми средами)
 
-- **Advanced Features**:
-  - Save/Load flows to file
-  - Export to Postman collection
-  - Test execution history
-  - Performance metrics
-  - Authentication handling
-  - Mock server integration
+- **Расширенные функции**:
+  - Сохранение/загрузка потоков в файл
+  - Экспорт в коллекцию Postman
+  - История выполнения тестов
+  - Метрики производительности
+  - Обработка аутентификации
+  - Интеграция с мок-сервером
 
-- **UI Improvements**:
-  - Node templates library
-  - Search and filtering
-  - Minimap for large flows
-  - Keyboard shortcuts
-  - Dark/light theme toggle
+- **Улучшения UI**:
+  - Библиотека шаблонов узлов
+  - Поиск и фильтрация
+  - Мини-карта для больших потоков
+  - Горячие клавиши
+  - Переключение тёмной/светлой темы
 
-## 📄 License
+## 📄 Лицензия
 
-MIT License - feel free to use this project for your API testing needs!
+MIT License - используйте этот проект для своих нужд по тестированию API!
 
-## 🤝 Contributing
+## 🤝 Участие в разработке
 
-This is a prototype - contributions welcome! Ideas for improvement:
-- Additional node types
-- Better error handling
-- Performance optimizations
-- UI/UX improvements
+Это прототип - вклад приветствуется! Идеи для улучшения:
+- Дополнительные типы узлов
+- Лучшая обработка ошибок
+- Оптимизация производительности
+- Улучшения UI/UX
