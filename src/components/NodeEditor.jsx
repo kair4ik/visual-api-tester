@@ -24,6 +24,7 @@ const NodeEditor = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [viewState, setViewState] = useState({ scale: 1, pan: { x: 0, y: 0 } })
   const [isPanning, setIsPanning] = useState(false)
+  const [connectionSvgs, setConnectionSvgs] = useState([])
   const containerRef = useRef(null)
   const { executeRequest } = useHttpRequest()
 
@@ -537,6 +538,47 @@ const NodeEditor = () => {
     }
   }, [isPanning, dragState, resizeState, connectionDrag])
 
+  useEffect(() => {
+    const newConnectionSvgs = connections.map(connection => {
+      const fromNode = nodes.find(n => n.id === connection.from)
+      const toNode = nodes.find(n => n.id === connection.to)
+
+      if (!fromNode || !toNode) {
+        return null
+      }
+
+      const fromPos = getSocketPosition(connection.from, connection.fromSocket, 'output')
+      const toPos = getSocketPosition(connection.to, connection.toSocket, 'input')
+
+      if (!fromPos || !toPos) {
+        return null
+      }
+
+      const fromX = fromPos.x
+      const fromY = fromPos.y
+      const toX = toPos.x
+      const toY = toPos.y
+
+      const controlOffset = Math.max(80, Math.abs(fromX - toX) / 3)
+      const fromControlX = fromX + controlOffset
+      const toControlX = toX - controlOffset
+
+      const midX = (fromX + toX) / 2
+      const midY = (fromY + toY) / 2
+
+      const pathD = `M ${fromX} ${fromY} C ${fromControlX} ${fromY}, ${toControlX} ${toY}, ${toX} ${toY}`
+
+      return {
+        id: connection.id,
+        pathD,
+        midX,
+        midY,
+      }
+    }).filter(Boolean)
+
+    setConnectionSvgs(newConnectionSvgs)
+  }, [nodes, connections, viewState])
+
   // Helper function to get socket position
   const getSocketPosition = (nodeId, socketId, socketType) => {
     const containerRect = containerRef.current?.getBoundingClientRect()
@@ -555,127 +597,6 @@ const NodeEditor = () => {
     return { x, y }
   }
 
-  const renderConnection = (connection) => {
-    const fromNode = nodes.find(n => n.id === connection.from)
-    const toNode = nodes.find(n => n.id === connection.to)
-    
-    if (!fromNode || !toNode) {
-      return null
-    }
-
-    // Get exact socket positions
-    const fromPos = getSocketPosition(connection.from, connection.fromSocket, 'output')
-    const toPos = getSocketPosition(connection.to, connection.toSocket, 'input')
-    
-    if (!fromPos || !toPos) {
-      return null
-    }
-
-    const fromX = fromPos.x
-    const fromY = fromPos.y
-    const toX = toPos.x
-    const toY = toPos.y
-
-    // Calculate control points for smooth curve
-    const controlOffset = Math.max(80, Math.abs(fromX - toX) / 3)
-    const fromControlX = fromX + controlOffset
-    const toControlX = toX - controlOffset
-    
-    // Calculate midpoint for delete button
-    const midX = (fromX + toX) / 2
-    const midY = (fromY + toY) / 2
-    
-    
-    return (
-      <svg 
-        key={connection.id}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 1
-        }}
-      >
-        {/* Connection path */}
-        <path
-          d={`M ${fromX} ${fromY} C ${fromControlX} ${fromY}, ${toControlX} ${toY}, ${toX} ${toY}`}
-          stroke="#4a90e2"
-          strokeWidth={3}
-          fill="none"
-          opacity={0.8}
-          style={{
-            filter: 'drop-shadow(0 2px 4px rgba(74, 144, 226, 0.3))'
-          }}
-        />
-        
-        {/* Invisible wider path for easier clicking */}
-        <path
-          d={`M ${fromX} ${fromY} C ${fromControlX} ${fromY}, ${toControlX} ${toY}, ${toX} ${toY}`}
-          stroke="transparent"
-          strokeWidth={12}
-          fill="none"
-          style={{ pointerEvents: 'stroke', cursor: 'pointer' }}
-          onClick={(e) => {
-            e.stopPropagation()
-            deleteConnection(connection.id)
-          }}
-          onMouseEnter={(e) => {
-            // Highlight the connection on hover
-            const visiblePath = e.target.parentElement.querySelector('path[stroke="#4a90e2"]')
-            const deleteBtn = e.target.parentElement.querySelector('.connection-delete-btn')
-            if (visiblePath) {
-              visiblePath.setAttribute('stroke', '#ff4757')
-              visiblePath.setAttribute('strokeWidth', '4')
-            }
-            if (deleteBtn) {
-              deleteBtn.style.opacity = '1'
-            }
-          }}
-          onMouseLeave={(e) => {
-            // Reset connection appearance
-            const visiblePath = e.target.parentElement.querySelector('path[stroke="#ff4757"]')
-            const deleteBtn = e.target.parentElement.querySelector('.connection-delete-btn')
-            if (visiblePath) {
-              visiblePath.setAttribute('stroke', '#4a90e2')
-              visiblePath.setAttribute('strokeWidth', '3')
-            }
-            if (deleteBtn) {
-              deleteBtn.style.opacity = '0'
-            }
-          }}
-        />
-        
-        
-        {/* Delete button on hover */}
-        <g className="connection-delete-btn" style={{ opacity: 0, transition: 'opacity 0.2s ease' }}>
-          <circle
-            cx={midX}
-            cy={midY}
-            r="10"
-            fill="#ff4757"
-            style={{ pointerEvents: 'all', cursor: 'pointer' }}
-            onClick={(e) => {
-              e.stopPropagation()
-              deleteConnection(connection.id)
-            }}
-          />
-          <text
-            x={midX}
-            y={midY + 2}
-            fontSize="14"
-            fill="white"
-            textAnchor="middle"
-            style={{ pointerEvents: 'none', fontWeight: 'bold' }}
-          >
-            ×
-          </text>
-        </g>
-      </svg>
-    )
-  }
 
   const handleNodeResizeStart = (e, nodeId) => {
     e.preventDefault()
@@ -785,7 +706,81 @@ const NodeEditor = () => {
           }}
         >
           {/* Render connections */}
-          {connections.map(renderConnection)}
+          {connectionSvgs.map(svgData => (
+            svgData.pathD && <g key={svgData.id}>
+              {/* Connection path */}
+              <path
+                d={svgData.pathD}
+                stroke="#4a90e2"
+                strokeWidth={3}
+                fill="none"
+                opacity={0.8}
+                style={{
+                  filter: 'drop-shadow(0 2px 4px rgba(74, 144, 226, 0.3))'
+                }}
+              />
+              
+              {/* Invisible wider path for easier clicking */}
+              <path
+                d={svgData.pathD}
+                stroke="transparent"
+                strokeWidth={12}
+                fill="none"
+                style={{ pointerEvents: 'stroke', cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  deleteConnection(svgData.id)
+                }}
+                onMouseEnter={(e) => {
+                  const visiblePath = e.target.parentElement.querySelector('path[stroke="#4a90e2"]')
+                  const deleteBtn = e.target.parentElement.querySelector('.connection-delete-btn')
+                  if (visiblePath) {
+                    visiblePath.setAttribute('stroke', '#ff4757')
+                    visiblePath.setAttribute('strokeWidth', '4')
+                  }
+                  if (deleteBtn) {
+                    deleteBtn.style.opacity = '1'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  const visiblePath = e.target.parentElement.querySelector('path[stroke="#ff4757"]')
+                  const deleteBtn = e.target.parentElement.querySelector('.connection-delete-btn')
+                  if (visiblePath) {
+                    visiblePath.setAttribute('stroke', '#4a90e2')
+                    visiblePath.setAttribute('strokeWidth', '3')
+                  }
+                  if (deleteBtn) {
+                    deleteBtn.style.opacity = '0'
+                  }
+                }}
+              />
+              
+              {/* Delete button on hover */}
+              <g className="connection-delete-btn" style={{ opacity: 0, transition: 'opacity 0.2s ease' }}>
+                <circle
+                  cx={svgData.midX}
+                  cy={svgData.midY}
+                  r="10"
+                  fill="#ff4757"
+                  style={{ pointerEvents: 'all', cursor: 'pointer' }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deleteConnection(svgData.id)
+                  }}
+                />
+                <text
+                  x={svgData.midX}
+                  y={svgData.midY + 2}
+                  fontSize="14"
+                  fill="white"
+                  textAnchor="middle"
+                  style={{ pointerEvents: 'none', fontWeight: 'bold' }}
+                >
+                  ×
+                </text>
+              </g>
+            </g>
+          ))}
 
           {/* Render temporary connection while dragging */}
           {connectionDrag && (
